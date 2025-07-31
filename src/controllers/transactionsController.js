@@ -16,23 +16,25 @@ export async function getTransactionByUserId(req, res) {
 export const createTransaction = async (req, res) => {
   try {
     console.log("📩 Incoming POST to /transactions", req.body);
-    const { title, amount, type, userId, emoji } = req.body;
+    const { user_id, title, amount, category } = req.body;
 
-    // make sure all are present
-    if (!title || !amount || !type || !userId) {
+    if (!user_id || !title || !amount || !category) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const newTransaction = await prisma.transaction.create({
-      data: { title, amount, type, userId, emoji },
-    });
+    const newTransaction = await sql`
+      INSERT INTO transactions (user_id, title, amount, category)
+      VALUES (${user_id}, ${title}, ${amount}, ${category})
+      RETURNING *;
+    `;
 
-    return res.status(201).json(newTransaction);
+    return res.status(201).json(newTransaction.rows[0]);
   } catch (error) {
     console.error("❌ Error in createTransaction:", error.message);
     res.status(500).json({ message: "Failed to create transaction" });
   }
 };
+
 export async function deleteTransaction(req, res) {
     try {
         const { id } = req.params;
