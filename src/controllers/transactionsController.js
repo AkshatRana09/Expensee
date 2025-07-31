@@ -33,7 +33,6 @@ export const createTransaction = async (req, res) => {
     res.status(500).json({ message: "Failed to create transaction" });
   }
 };
-
 export async function deleteTransaction(req, res) {
     try {
         const { id } = req.params;
