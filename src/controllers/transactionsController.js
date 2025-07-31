@@ -13,23 +13,27 @@ export async function getTransactionByUserId(req, res) {
         res.status(500).json({ message: "Internal Server Error" });
     }
 }
-export async function createTransaction(req, res) {
-    try {
-        const { title, amount, category, user_id } = req.body;
-        if (!title || !category || !user_id || amount === undefined) {
-            return res.status(400).json({ message: "All fields are required" });
-        }
-        const transaction = await sql`
-            INSERT INTO transactions (user_id, title, amount, category)
-            VALUES (${user_id}, ${title}, ${amount}, ${category})
-            RETURNING *;
-        `;
-        res.status(201).json(transaction[0]);
-    } catch (error) {
-        console.log("Error creating transaction", error);
-        res.status(500).json({ message: "Internal Server Error" });
+export const createTransaction = async (req, res) => {
+  try {
+    console.log("📩 Incoming POST to /transactions", req.body);
+    const { title, amount, type, userId, emoji } = req.body;
+
+    // make sure all are present
+    if (!title || !amount || !type || !userId) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
-}
+
+    const newTransaction = await prisma.transaction.create({
+      data: { title, amount, type, userId, emoji },
+    });
+
+    return res.status(201).json(newTransaction);
+  } catch (error) {
+    console.error("❌ Error in createTransaction:", error.message);
+    res.status(500).json({ message: "Failed to create transaction" });
+  }
+};
+
 export async function deleteTransaction(req, res) {
     try {
         const { id } = req.params;
